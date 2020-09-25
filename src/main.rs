@@ -2,6 +2,7 @@ extern crate console;
 
 use console::Term;
 use console::Style;
+use console::Color;
 
 use std::io::{self, Write};
 
@@ -18,10 +19,10 @@ fn main() {
     // ---- CONSOLE CONTROL ----
     // Get the terminal handle and clear the screen
     let term = Term::stdout();
-    term.clear_screen();
+    term.clear_screen().unwrap();
 
     // Style to highlight current cursor
-    let green = Style::new().green();
+    let green = Style::from_dotted_str("green.on_red()");
 
     // ---- ----
     // Variables to control logic
@@ -38,25 +39,27 @@ fn main() {
 
     while quit_flag == false {
         // Clear screen and display
-        term.clear_screen();
+        term.clear_screen().unwrap();
 
         let mut render_line = 0;
         let total_lines = line_vec.len();
 
         for line in line_vec.iter() {
+            let print_string;
             if line.is_task {
-                if render_line == curr_line {
-                    println!("[{}] {}", if line.is_done { "X" } else { " " }, green.apply_to(&line.text));
-                } else {
-                    println!("[{}] {}", if line.is_done { "X" } else { " " }, &line.text);
-                }
+                print_string = format!("[{}] {}", if line.is_done { "X" } else { " " }, &line.text);
             } else {
-                if render_line != 0 { println!("") }
-                if render_line == curr_line {
-                    println!("# {}", green.apply_to(&line.text));
+                if render_line != 0 {
+                    print_string = format!("\n# {}", &line.text);
                 } else {
-                    println!("# {}", &line.text);
+                    print_string = format!("# {}", &line.text);
                 }
+            }
+
+            if render_line == curr_line {
+                println!("{}", green.apply_to(&print_string));
+            } else {
+                println!("{}", &print_string);
             }
             render_line += 1;
         }
@@ -141,7 +144,7 @@ fn main() {
                         match term.read_line() {
                             Ok(read_line) => {
                                 line.text = read_line;
-                                term.clear_last_lines(1);
+                                term.clear_last_lines(1).unwrap();
                             },
                             Err(_e) => println!("Could not read line"),
                         }
@@ -153,3 +156,7 @@ fn main() {
         }
     }
 }
+
+
+// Render all lines to the screen
+
